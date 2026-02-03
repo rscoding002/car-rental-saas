@@ -44,8 +44,10 @@ export async function generateMetadata({
   }
 
   // Get localized title and meta
-  const title = page.title?.[locale as Locale] || page.title?.en || slug;
-  const meta = page.meta?.[locale as Locale] || page.meta?.en || {};
+  const pageTitle = page.title as Record<string, string> | null;
+  const pageMeta = page.meta as Record<string, { description?: string; keywords?: string[]; ogImage?: string }> | null;
+  const title = pageTitle?.[locale as Locale] || pageTitle?.en || slug;
+  const meta = pageMeta?.[locale as Locale] || pageMeta?.en || {};
 
   return generateCmsPageMetadata({
     page: {
