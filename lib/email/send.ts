@@ -15,6 +15,13 @@
 
 import * as React from 'react';
 import { sendEmail, type SendEmailResult, type SendEmailOptions } from './client';
+
+/**
+ * Check if email sending is enabled (Resend API key is configured)
+ */
+export function isEmailEnabled(): boolean {
+  return Boolean(process.env.RESEND_API_KEY);
+}
 import {
   BookingConfirmationEmail,
   BookingModificationEmail,
