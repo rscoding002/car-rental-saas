@@ -969,7 +969,21 @@ export interface Database {
       };
     };
     Enums: {
-      [_ in never]: never;
+      subscription_tier: SubscriptionTier;
+      tenant_status: TenantStatus;
+      user_role: UserRole;
+      user_status: UserStatus;
+      branch_status: BranchStatus;
+      vehicle_status: VehicleStatus;
+      transmission: Transmission;
+      fuel_type: FuelType;
+      rate_type: RateType;
+      price_type: PriceType;
+      discount_type: DiscountType;
+      coupon_status: CouponStatus;
+      booking_status: BookingStatus;
+      page_status: PageStatus;
+      block_type: BlockType;
     };
   };
 }
@@ -986,6 +1000,16 @@ export type InsertTables<T extends keyof Database['public']['Tables']> =
 
 export type UpdateTables<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Update'];
+
+// Aliases for compatibility
+export type TablesInsert<T extends keyof Database['public']['Tables']> =
+  Database['public']['Tables'][T]['Insert'];
+
+export type TablesUpdate<T extends keyof Database['public']['Tables']> =
+  Database['public']['Tables'][T]['Update'];
+
+export type Enums<T extends keyof Database['public']['Enums']> =
+  Database['public']['Enums'][T];
 
 // Convenience type aliases
 export type Tenant = Tables<'tenants'>;
