@@ -72,12 +72,6 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 604800,
 
     /**
-     * Quality setting for optimized images (1-100)
-     * 80 offers good balance between file size and visual quality
-     */
-    quality: 80,
-
-    /**
      * Disable static image imports size warning in development
      * Enable in production for debugging if needed
      */
