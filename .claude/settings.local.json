@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run lint:fix:*)",
+      "Bash(npx tsc:*)",
+      "Bash(ls:*)",
+      "Bash(npx next lint:*)",
+      "Bash(dir:*)",
+      "Bash(npx jest __tests__/lib/booking/validation.test.ts --passWithNoTests)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run lint:*)",
+      "Bash(winget install:*)",
+      "Bash(powershell -Command \"Invoke-WebRequest -Uri ''https://github.com/supabase/cli/releases/latest/download/supabase_windows_amd64.exe'' -OutFile ''C:/Users/skrod/AppData/Local/Microsoft/WindowsApps/supabase.exe''\")",
+      "Bash(vercel --version:*)",
+      "Bash(npx supabase:*)",
+      "Bash(gh:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(powershell -Command \"& ''C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe'' --version\")",
+      "Bash(git add:*)"
+    ]
+  }
+}

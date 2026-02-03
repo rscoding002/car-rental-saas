@@ -1,0 +1,789 @@
+# Task List: Multi-Tenant SaaS Car Rental Platform
+
+**PRD:** `prd-car-rental-saas.md`
+**Scope:** Phase 1 (MVP)
+**Generated:** 2026-01-31
+
+---
+
+## Relevant Files
+
+### Configuration & Setup
+- `package.json` - Project dependencies and scripts
+- `next.config.ts` - Next.js configuration with i18n, image optimization
+- `app/globals.css` - Tailwind CSS theme tokens, Core Web Vitals optimizations (content-visibility, reduced-motion, touch optimizations) [updated]
+- `eslint.config.mjs` - ESLint configuration with strict TypeScript and React rules
+- `.prettierrc` - Prettier configuration for code formatting
+- `.prettierignore` - Files excluded from Prettier formatting
+- `.env.example` - Environment variables template with documentation (including Vercel deployment vars)
+- `.env.local` - Local environment variables (git-ignored)
+- `.gitignore` - Git ignore rules
+- `tsconfig.json` - TypeScript configuration (strict mode)
+- `vercel.json` - Vercel deployment configuration (regions, headers, cron jobs)
+- `middleware.ts` - Auth protection, tenant resolution, i18n routing middleware, tenant suspension blocking [updated]
+- `app/api/cron/send-reminders/route.ts` - Cron endpoint for booking reminder emails
+- `app/error.tsx` - Error boundary for route error handling [created]
+- `app/global-error.tsx` - Global error boundary for root layout errors [created]
+- `app/loading.tsx` - Root loading state with spinner [created]
+- `app/not-found.tsx` - 404 not found page [created]
+
+### Supabase & Database
+- `supabase/schema.md` - Complete database schema design (ERD) [created]
+- `supabase/migrations/*.sql` - Database migration files
+- `supabase/seed.sql` - Seed data for development
+- `lib/supabase/client.ts` - Supabase browser client
+- `lib/supabase/server.ts` - Supabase server client (for RSC)
+- `lib/supabase/admin.ts` - Supabase admin client (service role)
+- `lib/supabase/types.ts` - Generated TypeScript types from schema
+- `lib/supabase/index.ts` - Supabase client exports
+- `lib/supabase/rls-policies.sql` - Row Level Security policies
+- `supabase/migrations/019_auth_user_trigger.sql` - Auto-create user profile with customer role on signup [created]
+
+### Authentication & Authorization
+- `lib/auth/config.ts` - Auth configuration, redirect URLs, and settings [created]
+- `lib/auth/index.ts` - Auth module exports [created]
+- `lib/auth/auth-context.tsx` - Auth context provider with user/session state [created]
+- `lib/auth/use-auth.ts` - Auth hook for client components [created]
+- `lib/auth/roles.ts` - Role definitions and permission helpers [created]
+- `lib/auth/permissions.ts` - Permission checking utilities (hasRole, canAccess) [created]
+- `lib/auth/middleware.ts` - Server-side auth middleware utilities [created]
+- `lib/auth/session.ts` - Session refresh and token handling utilities [created]
+- `lib/auth/actions.ts` - Server actions for profile management (update, get) [created]
+- `app/api/auth/callback/route.ts` - Auth callback handler for OAuth/magic links with welcome email on signup [updated]
+- `app/api/auth/sign-out/route.ts` - Sign-out route handler [created]
+- `app/[locale]/layout.tsx` - Locale layout with NextIntlClientProvider, AuthProvider, TenantProvider, TenantThemeProvider, TenantBranding, optimized font loading [updated]
+- `app/[locale]/page.tsx` - Locale homepage with translations [created]
+- `app/[locale]/(auth)/layout.tsx` - Auth pages layout [updated]
+- `app/[locale]/(auth)/login/page.tsx` - Login page [created]
+- `app/[locale]/(auth)/register/page.tsx` - Registration page [created]
+- `app/[locale]/(auth)/forgot-password/page.tsx` - Forgot password page [created]
+- `app/[locale]/(auth)/reset-password/page.tsx` - Reset password page [created]
+- `components/auth/login-form.tsx` - Login form component [created]
+- `components/auth/register-form.tsx` - Registration form component [created]
+- `components/auth/forgot-password-form.tsx` - Forgot password form component [created]
+- `components/auth/reset-password-form.tsx` - Reset password form component [created]
+- `components/auth/verify-email-content.tsx` - Email verification content component [created]
+- `components/auth/logout-button.tsx` - Logout button and link components [created]
+- `app/[locale]/(auth)/verify-email/page.tsx` - Email verification page [created]
+- `app/[locale]/suspended/page.tsx` - Suspended tenant page shown when user's tenant is suspended [created]
+
+### Internationalization (i18n)
+- `i18n/config.ts` - i18n configuration with locale utilities and date-fns locale loader [updated]
+- `i18n/request.ts` - next-intl request configuration [created]
+- `i18n/routing.ts` - next-intl navigation utilities (Link, useRouter, etc.) [created]
+- `i18n/index.ts` - i18n module exports [created]
+- `lib/i18n/use-translations.ts` - Enhanced useTranslations hooks with formatting helpers [created]
+- `lib/i18n/index.ts` - i18n hooks exports [created]
+- `messages/en.json` - English translations [updated]
+- `messages/lt.json` - Lithuanian translations [updated]
+- `messages/ru.json` - Russian translations [updated]
+- `components/language-switcher.tsx` - Language switcher component (respects tenant enabled languages) [updated]
+
+### Multi-Tenant
+- `lib/tenant/types.ts` - Tenant types, Zod schemas, language settings helpers [created]
+- `lib/tenant/resolve-tenant.ts` - Tenant resolution from domain/subdomain [created]
+- `lib/tenant/queries.ts` - Tenant database queries (get, update settings) [created]
+- `lib/tenant/tenant-context.tsx` - Tenant context provider with language settings [created]
+- `lib/tenant/use-tenant.ts` - Tenant hooks (useTenant, useTenantLanguages, etc.) [created]
+- `lib/tenant/index.ts` - Tenant module exports (includes theme utilities) [updated]
+- `lib/tenant/theme.ts` - Tenant theme/branding utilities (color palette generation, CSS variables) [created]
+
+### CMS & Page Builder
+- `lib/cms/block-types.ts` - Block type interfaces, Zod schemas, and helper functions [created]
+- `lib/cms/block-registry.ts` - Block component registry with lazy loading and metadata [created]
+- `lib/cms/index.ts` - CMS module exports [updated]
+- `components/blocks/index.ts` - Block components exports [created]
+- `components/blocks/hero-block.tsx` - Hero section block with background, CTA, alignment [implemented]
+- `components/blocks/features-block.tsx` - Features grid with icons and configurable columns [implemented]
+- `components/blocks/fleet-gallery-block.tsx` - Fleet gallery with grid/carousel layouts, useTransition for INP [updated]
+- `components/blocks/testimonials-block.tsx` - Testimonials with grid/carousel, ratings, avatars, useTransition for INP [updated]
+- `components/blocks/faq-block.tsx` - FAQ accordion with single/multi-open modes, FAQPage JSON-LD schema [updated]
+- `components/blocks/cta-block.tsx` - CTA with background image/color, dual buttons [implemented]
+- `components/blocks/text-image-block.tsx` - Text/image side-by-side with position toggle [implemented]
+- `components/blocks/contact-form-block.tsx` - Contact form with configurable fields, validation [implemented]
+- `components/blocks/location-map-block.tsx` - Location map with branch cards, directions [implemented]
+- `components/blocks/pricing-table-block.tsx` - Pricing tiers with features, category pricing [implemented]
+- `components/blocks/text-block.tsx` - Text block (stub) [created]
+- `components/blocks/image-block.tsx` - Image block (stub) [created]
+- `components/blocks/video-block.tsx` - Video block (stub) [created]
+- `components/blocks/divider-block.tsx` - Divider block (functional) [created]
+- `components/blocks/spacer-block.tsx` - Spacer block (functional) [created]
+- `components/blocks/html-block.tsx` - HTML block (functional) [created]
+- `components/blocks/hero-block.tsx` - Hero section block
+- `components/blocks/features-block.tsx` - Features grid block
+- `components/blocks/fleet-gallery-block.tsx` - Fleet gallery block
+- `components/blocks/testimonials-block.tsx` - Testimonials block
+- `components/blocks/faq-block.tsx` - FAQ accordion block
+- `components/blocks/cta-block.tsx` - Call-to-action block
+- `components/blocks/text-image-block.tsx` - Text with image block
+- `components/blocks/contact-form-block.tsx` - Contact form block
+- `components/blocks/location-map-block.tsx` - Location map block
+- `components/blocks/pricing-table-block.tsx` - Pricing table block
+- `components/page-builder/block-renderer.tsx` - Dynamic block renderer with Suspense, settings [created]
+- `components/page-builder/index.ts` - Page builder components exports [created]
+- `components/page-builder/block-editor.tsx` - Admin block editor
+- `app/[locale]/admin/layout.tsx` - Admin layout with sidebar navigation [created]
+- `app/[locale]/admin/pages/page.tsx` - Pages list with filters, actions [created]
+- `app/[locale]/admin/pages/new/page.tsx` - New page creation form [created]
+- `app/[locale]/admin/pages/[id]/edit/page.tsx` - Page editor with block management [created]
+- `app/[locale]/admin/pages/[id]/preview/page.tsx` - Page preview with status banner and admin controls [created]
+- `app/api/admin/pages/route.ts` - Pages API (list, create) [created]
+- `app/api/admin/pages/[id]/route.ts` - Page API (get, update, delete) [created]
+- `components/page-builder/page-editor.tsx` - Page editor with locale tabs for title and SEO metadata editing [updated]
+- `components/page-builder/block-picker.tsx` - Block type picker modal for adding blocks [created]
+- `components/page-builder/block-editor.tsx` - Block content editing forms with locale tabs, integrated media picker [updated]
+- `components/page-builder/media-picker.tsx` - Media picker modal and ImageField component for block editors [created]
+- `app/[locale]/admin/media/page.tsx` - Media library with upload, grid/list views, search, folders, delete [created]
+- `app/api/admin/pages/[id]/status/route.ts` - API endpoint for quick page status updates [created]
+- `components/admin/page-status-toggle.tsx` - Page status toggle component with publish/unpublish/archive actions [created]
+
+### Public Website Template
+- `components/layout/header.tsx` - Site header with nav, language switcher, tenant logo, safe area support [updated]
+- `components/layout/footer.tsx` - Site footer with links, contact info, social icons, tenant logo [updated]
+- `app/globals.css` - Global CSS with mobile optimizations (safe areas, touch targets, iOS zoom prevention) [updated]
+- `components/vehicles/vehicle-filters.tsx` - Vehicle filters with mobile slide-out panel, safe area support [updated]
+- `components/ui/image-gallery.tsx` - Image gallery with lightbox, touch-friendly navigation [updated]
+- `components/layout/public-layout.tsx` - Base public layout wrapper with header and footer [created]
+- `components/layout/index.ts` - Layout components exports [updated]
+- `app/[locale]/(public)/layout.tsx` - Public pages layout using PublicLayout [created]
+- `app/[locale]/(public)/page.tsx` - Homepage with booking widget, CMS blocks, fallback sections [updated]
+- `components/booking/search-widget.tsx` - Booking search form with locations, dates, times [created]
+- `components/booking/availability-calendar.tsx` - Availability calendar with date range selection, legend, localization [created]
+- `components/booking/index.ts` - Booking components exports [updated]
+- `components/booking/duration-pricing.tsx` - Duration pricing display component (weekly/monthly rate tiers, savings) [created]
+- `components/booking/branch-selector.tsx` - Branch selector component with search, grouping by city, open/closed status [created]
+- `components/vehicles/vehicle-card.tsx` - Vehicle display card with photo, specs, price, CTA [created]
+- `components/vehicles/index.ts` - Vehicle components exports [created]
+- `components/vehicles/vehicle-grid.tsx` - Responsive vehicle grid with layout toggle, loading skeletons, empty state [implemented]
+- `components/vehicles/vehicle-filters.tsx` - Vehicle filters with category, transmission, fuel, price, seats; sidebar/horizontal/modal variants [implemented]
+- `components/ui/index.ts` - UI component exports [created]
+- `components/ui/button.tsx` - Button with variants and loading state [created]
+- `components/ui/input.tsx` - Input with label, error, icons [created]
+- `components/ui/select.tsx` - Select dropdown with options [created]
+- `components/ui/textarea.tsx` - Multiline text input [created]
+- `components/ui/checkbox.tsx` - Checkbox with label [created]
+- `components/ui/label.tsx` - Form label component [created]
+- `components/ui/card.tsx` - Card container components [created]
+- `components/ui/modal.tsx` - Modal dialog with overlay [created]
+- `components/ui/badge.tsx` - Status badge component [created]
+- `components/ui/avatar.tsx` - User avatar with fallback [created]
+- `components/ui/alert.tsx` - Alert message component [created]
+- `components/ui/spinner.tsx` - Loading spinner [created]
+- `components/ui/skeleton.tsx` - Loading skeleton placeholders [created]
+- `components/ui/image-gallery.tsx` - Image gallery with thumbnails, lightbox, zoom, keyboard navigation [created]
+- `app/[locale]/(public)/fleet/page.tsx` - Fleet listing page with header, data fetching [implemented]
+- `app/[locale]/(public)/fleet/fleet-content.tsx` - Fleet client component with filters, sorting, grid [created]
+- `app/[locale]/(public)/fleet/[id]/page.tsx` - Vehicle detail page with metadata, data fetching, Vehicle JSON-LD schema [updated]
+- `app/[locale]/(public)/fleet/[id]/vehicle-detail-content.tsx` - Vehicle detail content with gallery, specs, booking card [created]
+- `app/[locale]/(public)/about/page.tsx` - About page with CMS blocks, fallback sections (hero, stats, mission, values, team) [implemented]
+- `app/[locale]/(public)/contact/page.tsx` - Contact page with header, data fetching [implemented]
+- `app/[locale]/(public)/contact/contact-content.tsx` - Contact form, map embed, branch info cards [created]
+- `app/[locale]/(public)/[slug]/page.tsx` - Dynamic CMS page with metadata, block rendering, reserved slug handling [implemented]
+- `app/[locale]/(public)/terms/page.tsx` - Terms of Service page with CMS fallback, static legal content [created]
+- `app/[locale]/(public)/privacy/page.tsx` - Privacy Policy page with CMS fallback, static legal content [created]
+- `app/[locale]/(public)/locations/page.tsx` - Locations page with branch list, LocalBusiness JSON-LD [created]
+- `app/[locale]/(public)/locations/locations-content.tsx` - Locations content with branch cards, search, city filter, map/list toggle [updated]
+- `components/branches/branches-map.tsx` - Interactive map component for displaying multiple branches [created]
+- `components/branches/index.ts` - Branch components exports [created]
+
+### Tenant Branding
+- `lib/tenant/theme.ts` - Tenant theme utilities (color palette generation, CSS variables) [created]
+- `lib/tenant/theme-context.tsx` - TenantThemeProvider context with useTenantTheme, useBrandColors hooks [created]
+- `components/tenant/tenant-branding.tsx` - Client component that applies tenant CSS variables dynamically, preconnect for font loading [updated]
+- `components/tenant/index.ts` - Tenant components exports [updated]
+
+### SEO
+- `lib/seo/index.ts` - SEO module exports [updated]
+- `lib/seo/hreflang.ts` - Hreflang link generation for multilingual SEO [created]
+- `lib/seo/metadata.ts` - Metadata generation utilities (generatePageMetadata, generateVehicleMetadata, generateCmsPageMetadata) [created]
+- `lib/seo/schema.ts` - Schema.org JSON-LD generators (Organization, LocalBusiness, Vehicle, FAQ, Breadcrumb, WebSite, Branch converters) [updated]
+- `app/[locale]/(public)/contact/page.tsx` - Contact page with LocalBusiness JSON-LD for branches [updated]
+- `lib/seo/sitemap.ts` - Sitemap generation utilities
+- `app/sitemap.ts` - Dynamic sitemap with static pages, vehicles, CMS pages, hreflang alternates [created]
+- `app/robots.ts` - Dynamic robots.txt route [created]
+
+### Analytics & Performance Monitoring
+- `lib/analytics/web-vitals.ts` - Web Vitals monitoring utilities (thresholds, formatters, reporters) [created]
+- `lib/analytics/index.ts` - Analytics module exports [created]
+- `app/[locale]/layout.tsx` - Locale layout with Vercel Analytics and Speed Insights [updated]
+- `.env.example` - Environment variables with analytics configuration documentation [updated]
+
+### Fleet & Branches
+- `lib/fleet/types.ts` - Vehicle and category types, Zod schemas (create/update/form), utility functions, constants [created]
+- `lib/fleet/index.ts` - Fleet module exports [updated]
+- `lib/fleet/queries.ts` - Vehicle database queries (list, get, create, update, delete, stats, validation) [created]
+- `lib/fleet/category-queries.ts` - Category database queries (list, get, create, update, delete, stats, vehicle counts) [created]
+- `app/[locale]/admin/fleet/page.tsx` - Fleet management list page with DataTable, filters, search, stats, sorting, mobile-responsive design [updated]
+- `app/[locale]/admin/fleet/new/page.tsx` - New vehicle creation page [created]
+- `app/[locale]/admin/fleet/[id]/edit/page.tsx` - Vehicle edit page [created]
+- `app/api/admin/fleet/route.ts` - Fleet API (list, create vehicles) [created]
+- `app/api/admin/fleet/[id]/route.ts` - Fleet API (get, update, delete vehicle) [created]
+- `components/admin/vehicle-form.tsx` - Vehicle create/edit form with all fields, features, localized descriptions, photos [updated]
+- `components/admin/vehicle-photo-upload.tsx` - Vehicle photo upload component with drag-drop, reorder, set primary, delete [created]
+- `lib/branches/types.ts` - Branch types, Zod schemas (create/update/form), operating hours utilities, distance calculations [updated]
+- `lib/branches/index.ts` - Branches module exports [updated]
+- `lib/branches/queries.ts` - Branch database queries (list, get, create, update, delete, stats, validation) [created]
+- `app/[locale]/admin/fleet/page.tsx` - Fleet management (admin)
+- `app/[locale]/admin/fleet/[id]/page.tsx` - Vehicle detail view with photos, specs, category, branch, features, description [created]
+- `app/[locale]/admin/fleet/new/page.tsx` - Add vehicle (admin)
+- `app/[locale]/admin/branches/page.tsx` - Branches list page with status filters, data table, mobile-responsive design [created]
+- `app/[locale]/admin/categories/page.tsx` - Categories list page with vehicle counts, filters, mobile-responsive design [created]
+- `app/[locale]/admin/categories/new/page.tsx` - New category creation page [created]
+- `app/[locale]/admin/categories/[id]/edit/page.tsx` - Category edit page [created]
+- `app/api/admin/categories/route.ts` - Categories API (list, create) [created]
+- `app/api/admin/categories/[id]/route.ts` - Category API (get, update, delete) [created]
+- `components/admin/category-form.tsx` - Category create/edit form with localized name/description, icon picker, image URL [created]
+- `app/[locale]/admin/branches/new/page.tsx` - New branch creation page [created]
+- `app/[locale]/admin/branches/[id]/edit/page.tsx` - Branch edit page [created]
+- `app/api/admin/branches/route.ts` - Branches API (list, create) [created]
+- `app/api/admin/branches/[id]/route.ts` - Branch API (get, update, delete) [created]
+- `components/admin/branch-form.tsx` - Branch create/edit form component with operating hours [created]
+- `app/[locale]/admin/categories/page.tsx` - Categories management (admin)
+
+### Availability & Pricing
+- `lib/availability/types.ts` - Availability types, interfaces, Zod schemas, and utility functions [created]
+- `lib/availability/queries.ts` - Availability query functions (single/multi vehicle, search, conflicts, buffer time) [created]
+- `lib/availability/buffer-time.ts` - Buffer time calculator with global/category/vehicle hierarchy [created]
+- `lib/availability/one-way.ts` - One-way rental availability, fee calculation, branch validation [created]
+- `lib/availability/blocks.ts` - Manual availability blocks CRUD, statistics, and utilities [created]
+- `lib/availability/index.ts` - Availability module exports [updated]
+- `lib/availability/calculator.ts` - Availability calculation engine
+- `supabase/migrations/020_buffer_time.sql` - Migration adding buffer_time_minutes to categories and vehicles [created]
+- `supabase/migrations/021_availability_blocks.sql` - Migration for availability_blocks table with RLS and functions [created]
+- `supabase/migrations/022_stripe_refund.sql` - Migration adding refund tracking columns to bookings table [created]
+- `lib/supabase/types.ts` - Added buffer_time_minutes, availability_blocks, refund fields (stripe_refund_id, refund_amount, refund_status, refunded_at) [updated]
+- `lib/pricing/types.ts` - Pricing rule types, Zod schemas, add-on types, coupon types, calculation types [updated]
+- `lib/pricing/queries.ts` - Pricing rule database queries (list, get, create, update, delete, bulk operations) [created]
+- `lib/pricing/calculator.ts` - Main pricing calculation engine with coupon integration via centralized validation [updated]
+- `lib/pricing/index.ts` - Pricing module exports [updated]
+- `lib/pricing/duration-calculator.ts` - Duration-based pricing calculator (weekly/monthly rates, savings, comparisons) [created]
+- `lib/pricing/calculator.ts` - Pricing calculation engine
+- `lib/pricing/coupons.ts` - Coupon database queries, validation logic, application functions [created]
+- `lib/tenant/types.ts` - Tenant types with one-way fees schema [updated]
+- `app/api/admin/settings/one-way-fees/route.ts` - One-way fees API (get, update) [created]
+- `app/[locale]/admin/settings/one-way-fees/page.tsx` - One-way fees admin settings page [created]
+- `components/admin/one-way-fees-form.tsx` - One-way fees configuration form (flat/distance/zone modes) [created]
+- `app/[locale]/admin/pricing/page.tsx` - Pricing rules list page with stats, filters, mobile-responsive design [created]
+- `app/[locale]/admin/pricing/new/page.tsx` - New pricing rule creation page [created]
+- `app/[locale]/admin/pricing/[id]/edit/page.tsx` - Pricing rule edit page [created]
+- `app/api/admin/pricing/route.ts` - Pricing rules API (list, create) [created]
+- `app/api/admin/pricing/[id]/route.ts` - Individual pricing rule API (get, update, delete) [created]
+- `components/admin/pricing-rule-form.tsx` - Pricing rule create/edit form with scope selection, rate type, duration limits [created]
+- `lib/pricing/season-queries.ts` - Season database queries (list, get, create, update, delete, stats, overlap calculation) [created]
+- `app/api/admin/seasons/route.ts` - Seasons API (list, create) [created]
+- `app/api/admin/seasons/[id]/route.ts` - Individual season API (get, update, delete) [created]
+- `app/[locale]/admin/pricing/seasons/page.tsx` - Seasons list page with stats, filters, timing indicators [created]
+- `app/[locale]/admin/pricing/seasons/new/page.tsx` - New season creation page [created]
+- `app/[locale]/admin/pricing/seasons/[id]/edit/page.tsx` - Season edit page [created]
+- `components/admin/season-form.tsx` - Season create/edit form with date range, multiplier presets, priority [created]
+- `lib/pricing/addon-queries.ts` - Add-on database CRUD queries (list, get, create, update, delete, stats) [created]
+- `lib/pricing/addon-calculator.ts` - Add-on pricing calculator (per-day, per-rental, one-time) [created]
+- `app/api/admin/addons/route.ts` - Add-ons API (list, create) [created]
+- `app/api/admin/addons/[id]/route.ts` - Individual add-on API (get, update, delete) [created]
+- `app/[locale]/admin/pricing/addons/page.tsx` - Add-ons list page with stats, filters [created]
+- `app/[locale]/admin/pricing/addons/new/page.tsx` - New add-on creation page [created]
+- `app/[locale]/admin/pricing/addons/[id]/edit/page.tsx` - Edit add-on page [created]
+- `components/admin/addon-form.tsx` - Add-on create/edit form with localized names, price types [created]
+- `app/[locale]/admin/pricing/coupons/page.tsx` - Coupons list page with stats, filters, mobile-responsive design [created]
+
+### Booking Engine
+- `lib/booking/types.ts` - Booking types, statuses, Zod schemas, utility functions (create/update/cancel inputs, flow types, refund calculation, refund fields) [updated]
+- `lib/booking/index.ts` - Booking module exports [updated]
+- `lib/booking/cancellation.ts` - Cancellation logic with refund calculation, preview, Stripe refund processing [updated]
+- `lib/booking/modification.ts` - Modification logic with availability check, pricing recalculation, refund processing [created]
+- `app/api/admin/bookings/[id]/modify/route.ts` - Modification API (GET preview, POST execute) with email notification [updated]
+- `app/api/admin/bookings/[id]/cancel/route.ts` - Cancellation API (GET preview, POST execute) with Stripe refund processing and email notification [updated]
+- `lib/booking/queries.ts` - Booking database queries (CRUD, list with filters, customer bookings, today's pickups/returns, stats, refund updates) [updated]
+- `lib/booking/reference-generator.ts` - Booking reference number generator with uniqueness checking, multiple formats, validation [created]
+- `app/[locale]/(public)/booking/page.tsx` - Booking search results page with search params, available vehicles [created]
+- `app/[locale]/(public)/booking/search-results.tsx` - Search results client component with filters, sorting, grid/list views [created]
+- `lib/booking/actions.ts` - Booking server actions
+- `lib/booking/validation.ts` - Booking validation (Zod schemas)
+- `lib/stripe/types.ts` - Stripe-related TypeScript types (checkout, refund, webhook types) [created]
+- `lib/stripe/client.ts` - Client-side Stripe.js utilities (getStripe, redirectToCheckout) [created]
+- `lib/stripe/server.ts` - Server-side Stripe SDK (createCheckoutSession, createRefund, webhooks) [created]
+- `lib/stripe/index.ts` - Stripe module exports [updated]
+- `lib/stripe/webhooks.ts` - Stripe webhook handlers
+- `app/[locale]/(public)/booking/page.tsx` - Booking flow start (search results)
+- `app/[locale]/(public)/booking/[vehicleId]/page.tsx` - Vehicle selection page with pricing and booking details [created]
+- `app/[locale]/(public)/booking/[vehicleId]/booking-vehicle-content.tsx` - Vehicle booking content component with pricing breakdown, rental details [created]
+- `app/[locale]/(public)/booking/checkout/page.tsx` - Checkout page
+- `app/[locale]/(public)/booking/confirmation/page.tsx` - Booking confirmation page with success banner, details, actions [created]
+- `app/[locale]/(public)/booking/confirmation/confirmation-content.tsx` - Confirmation content with rental details, vehicle, pricing, driver info, calendar export [created]
+- `app/api/stripe/checkout/route.ts` - Stripe checkout API (creates pending booking, then Stripe session) [updated]
+- `app/api/stripe/webhook/route.ts` - Stripe webhook endpoint for handling payment events [created]
+- `components/booking/booking-form.tsx` - Multi-step booking form shell with BookingStepWrapper [created]
+- `components/booking/booking-context.tsx` - Booking flow state management context and hooks [created]
+- `components/booking/booking-steps.tsx` - Step indicator components (full, compact, minimal variants) [created]
+- `components/booking/booking-step-vehicle.tsx` - Step 1: Vehicle confirmation and dates display with pricing summary [created]
+- `components/booking/booking-step-addons.tsx` - Step 2: Add-ons selection with quantity controls and summary [created]
+- `components/booking/booking-step-details.tsx` - Step 3: Customer details and driver information form [created]
+- `components/booking/booking-step-review.tsx` - Step 4: Review summary, coupon code, terms acceptance [created]
+- `components/booking/price-breakdown.tsx` - Reusable price breakdown components (full/compact/minimal variants) [created]
+- `lib/booking/checkout.ts` - Client-side checkout utilities (useCheckout hook, createCheckout with full booking data) [updated]
+- `components/booking/booking-form.tsx` - Multi-step booking form with step navigation [updated]
+- `components/booking/booking-step-review.tsx` - Step 4: Review and checkout integration [updated]
+- `components/booking/addon-selector.tsx` - Add-on selection
+- `components/booking/date-picker.tsx` - Date/time picker
+- `components/booking/location-picker.tsx` - Location selector
+
+### Customer Account
+- `app/[locale]/(public)/account/layout.tsx` - Account layout with sidebar (desktop) and tabs (mobile) [created]
+- `components/account/account-nav.tsx` - Account navigation component (tabs/sidebar variants) [created]
+- `components/account/account-user-info.tsx` - User info display for account sidebar [created]
+- `components/account/index.ts` - Account components exports [updated]
+- `app/[locale]/(public)/account/page.tsx` - Account overview with stats, upcoming bookings, quick actions [created]
+- `app/[locale]/(public)/account/bookings/page.tsx` - Bookings list with filter tabs (all/upcoming/active/past) [created]
+- `app/[locale]/(public)/account/bookings/bookings-list-content.tsx` - Client component for bookings list with filters [updated]
+- `app/[locale]/(public)/account/bookings/[id]/page.tsx` - Booking detail page with full info, actions [created]
+- `app/[locale]/(public)/account/bookings/[id]/booking-detail-content.tsx` - Booking detail client component with pricing, calendar export, print [created]
+- `app/[locale]/(public)/account/bookings/[id]/modify/page.tsx` - Booking modification page (customer) [created]
+- `app/[locale]/(public)/account/bookings/[id]/modify/booking-modify-content.tsx` - Booking modification form with date/time/location/addon changes, price preview [created]
+- `app/api/account/bookings/[id]/modify/route.ts` - Customer booking modification API (GET preview, POST execute) with email notification [updated]
+- `app/[locale]/(public)/account/bookings/[id]/cancel/page.tsx` - Booking cancellation page (customer) [created]
+- `app/[locale]/(public)/account/bookings/[id]/cancel/booking-cancel-content.tsx` - Booking cancellation form with policy display, refund preview, confirmation [created]
+- `app/api/account/bookings/[id]/cancel/route.ts` - Customer booking cancellation API (GET preview, POST execute) with email notification [updated]
+- `app/[locale]/(public)/account/profile/page.tsx` - Profile settings page with editable fields and security section [updated]
+- `app/[locale]/(public)/account/profile/profile-form.tsx` - Profile form component with personal info, contact, license, address, preferences [created]
+- `app/[locale]/(public)/account/profile/password-change-form.tsx` - Password change form with current/new password validation [created]
+- `lib/auth/actions.ts` - Auth server actions including changePassword function [updated]
+- `components/account/booking-card.tsx` - Reusable booking card component with default/compact/minimal variants, skeleton loader [created]
+- `components/account/booking-actions.tsx` - Modify/cancel actions
+
+### Admin Dashboard
+- `app/[locale]/admin/page.tsx` - Admin dashboard with stats cards, TodaysActivityWidget, recent bookings, fleet status widget [updated]
+- `app/[locale]/admin/layout.tsx` - Admin layout with protectLayout, role-based auth, passes userRole to sidebar [updated]
+- `app/[locale]/admin/settings/layout.tsx` - Settings layout with tenant_admin/platform_admin protection [created]
+- `app/[locale]/admin/users/layout.tsx` - Users layout with tenant_admin/platform_admin protection [created]
+- `components/admin/sidebar.tsx` - Admin sidebar with collapsible desktop nav, mobile slide-out menu, translations, active states, role-based menu filtering [updated]
+- `components/admin/index.ts` - Admin components exports [created]
+- `app/[locale]/admin/bookings/page.tsx` - Bookings list with DataTable, filters, stats, search, pagination, sorting, mobile-responsive design [updated]
+- `app/[locale]/admin/bookings/[id]/page.tsx` - Booking detail page with full info, pricing breakdown, status, driver info [created]
+- `app/[locale]/admin/bookings/[id]/booking-status-actions.tsx` - Client component for status transitions (confirm, start, complete, cancel) [created]
+- `app/api/admin/bookings/[id]/status/route.ts` - API endpoint for booking status updates with validation [created]
+- `app/[locale]/admin/bookings/new/page.tsx` - Staff booking creation page (walk-in/phone) [created]
+- `app/api/admin/bookings/route.ts` - Admin bookings API (list, create staff bookings) [created]
+- `components/admin/staff-booking-form.tsx` - Staff booking form with vehicle search, customer details, addons, skip payment [created]
+- `app/[locale]/admin/customers/page.tsx` - Customers list with DataTable, stats, search, pagination, booking stats aggregation [updated]
+- `app/[locale]/admin/customers/[id]/page.tsx` - Customer detail page with contact info, stats, booking history with filters/pagination [created]
+- `app/api/admin/customers/route.ts` - Customers API (GET list with filters, search, pagination, booking stats) [created]
+- `app/api/admin/customers/[id]/route.ts` - Customer detail API (GET with booking history, PUT for updates) [created]
+- `app/[locale]/admin/settings/page.tsx` - Settings overview with cards linking to all settings sub-pages [created]
+- `app/[locale]/admin/settings/branding/page.tsx` - Branding settings page with logo upload, colors, fonts [created]
+- `app/api/admin/settings/branding/route.ts` - Branding API endpoint (GET/PUT) with revalidation, null clearing support [updated]
+- `components/admin/branding-form.tsx` - Branding form with color pickers, presets, font selector, responsive live preview (desktop/mobile), preview site button, reset to defaults, unsaved changes indicator [updated]
+- `app/[locale]/admin/settings/languages/page.tsx` - Language settings page with enable/disable languages, set default, mobile-first design [created]
+- `app/api/admin/settings/languages/route.ts` - Language settings API endpoint (GET/PUT) with validation and revalidation [created]
+- `components/admin/languages-form.tsx` - Languages form with language cards, toggle, set default, summary, enable all, reset to defaults [created]
+- `app/[locale]/admin/settings/policies/page.tsx` - Cancellation policies settings page with refund tiers configuration [created]
+- `app/api/admin/settings/cancellation-policy/route.ts` - API endpoint for cancellation policy settings (GET/PUT) [created]
+- `components/admin/cancellation-policy-form.tsx` - Cancellation policy form with free/partial refund configuration [created]
+- `components/admin/todays-activity-widget.tsx` - Today's pickups and returns widget with mobile-first design, reusable ActivityBooking type [created]
+- `components/admin/recent-bookings-widget.tsx` - Recent bookings widget with default/compact/detailed variants, mobile-first design [created]
+- `components/admin/fleet-status-widget.tsx` - Fleet status widget with utilization rate, status breakdown, category support, multiple variants [created]
+- `app/[locale]/admin/users/page.tsx` - Users management page with search, role/status filters, pagination, stats cards, mobile-first design [created]
+- `app/[locale]/admin/users/new/page.tsx` - User invite/create page with role-based access control [created]
+- `app/api/admin/users/route.ts` - Users API (GET list with filters/pagination/stats, POST create/invite user) [updated]
+- `app/api/admin/users/[id]/route.ts` - Individual user API (GET, PUT, DELETE) with role/status management [created]
+- `app/[locale]/admin/users/[id]/page.tsx` - User detail page with status actions, deactivate modal [created]
+- `app/[locale]/admin/users/[id]/edit/page.tsx` - User edit page with form loading [created]
+- `components/admin/user-invite-form.tsx` - User invite form with name, email, phone, role selection, invite options [created]
+- `components/admin/user-edit-form.tsx` - User edit form with role, status, and profile editing [created]
+- `components/admin/stats-card.tsx` - Dashboard stat cards
+- `components/admin/data-table.tsx` - Reusable data table with sorting, pagination, search, filter bar, mobile-first responsive design, empty/loading states, helper components [created]
+- `components/admin/booking-calendar.tsx` - Booking calendar with monthly/weekly views, status filter, date selection panel, booking cards [created]
+- `app/[locale]/admin/calendar/page.tsx` - Admin booking calendar page [created]
+
+### Email Notifications
+- `lib/email/client.ts` - Resend email client with configuration, sendEmail, sendEmailBatch [created]
+- `lib/email/index.ts` - Email module exports with template re-exports, sendBookingModification, sendWelcome [updated]
+- `lib/email/user-emails.ts` - User-specific email helpers (sendWelcome, sendWelcomeByEmail) [created]
+- `lib/email/templates.ts` - Email template definitions
+- `lib/email/send.ts` - Email sending functions with template selection (sendTemplateEmail, convenience functions) [created]
+- `lib/email/booking-emails.ts` - Booking-specific email helpers (sendBookingConfirmation, sendBookingCancellation, sendBookingReminder, sendBookingModification) [updated]
+- `emails/index.ts` - Email templates module exports [created]
+- `emails/components/index.ts` - Email components exports [created]
+- `emails/components/base-layout.tsx` - Base email layout with header, footer, tenant branding [created]
+- `emails/components/email-button.tsx` - Styled CTA button component for emails [created]
+- `emails/components/email-heading.tsx` - Heading components (h1, h2, h3) for emails [created]
+- `emails/components/email-text.tsx` - Styled text paragraph component [created]
+- `emails/components/email-card.tsx` - Content card and detail row components [created]
+- `emails/components/email-divider.tsx` - Horizontal divider component [created]
+- `emails/components/email-alert.tsx` - Alert/notice box component (info, success, warning, error) [created]
+- `emails/utils/index.ts` - Email utilities exports [created]
+- `emails/utils/branding.ts` - Tenant branding utilities for emails [created]
+- `emails/booking-confirmation.tsx` - Booking confirmation email with vehicle, dates, pricing, actions [created]
+- `emails/booking-modification.tsx` - Booking modification email with changes diff, pricing update [created]
+- `emails/booking-cancellation.tsx` - Booking cancellation email with refund info, rebooking CTA [created]
+- `emails/booking-reminder.tsx` - Upcoming rental reminder with countdown, checklist, directions [created]
+- `emails/welcome.tsx` - Welcome email with features, getting started steps, special offer [created]
+- `emails/translations/index.ts` - Email translations helper (getEmailTranslations, translate, createScopedTranslator) [created]
+- `emails/translations/en.ts` - English email translations [created]
+- `emails/translations/lt.ts` - Lithuanian email translations [created]
+- `emails/translations/ru.ts` - Russian email translations [created]
+- `app/api/cron/send-reminders/route.ts` - Cron endpoint for booking reminder emails with full implementation [updated]
+- `app/api/admin/settings/email/route.ts` - Email settings API endpoint (GET/PUT) [created]
+- `app/[locale]/admin/settings/email/page.tsx` - Email settings admin page [created]
+- `components/admin/email-settings-form.tsx` - Email settings form with sender info and notification toggles [created]
+- `lib/tenant/types.ts` - Tenant types with email settings schema (TenantEmailSettings) [updated]
+- `lib/email/booking-emails.ts` - Updated to use tenant email settings (fromName, replyTo, notification toggles) [updated]
+
+### Platform Admin (Super Admin)
+- `app/[locale]/platform-admin/layout.tsx` - Platform admin layout with role protection [created]
+- `app/[locale]/platform-admin/page.tsx` - Platform dashboard with tenant stats, recent tenants, subscription breakdown, system status [updated]
+- `components/platform-admin/sidebar.tsx` - Platform admin sidebar with mobile support [created]
+- `components/platform-admin/index.ts` - Platform admin components exports [created]
+- `lib/auth/middleware.ts` - Added checkPlatformAdminApi and checkRolesApi for API route protection [updated]
+- `lib/auth/index.ts` - Exported new API auth utilities [updated]
+- `app/api/platform-admin/tenants/route.ts` - Platform admin tenants API (GET list with search/filters/pagination/stats, POST create tenant with initial admin user and invitation email) [updated]
+- `app/[locale]/platform-admin/tenants/page.tsx` - Tenants list with DataTable, search, status/tier filters, mobile-responsive [created]
+- `app/[locale]/platform-admin/tenants/[id]/page.tsx` - Tenant detail page with stats, info, settings overview, subscription tier management, status management (active/suspended/pending), actions (delete) [updated]
+- `app/api/platform-admin/tenants/[id]/route.ts` - Individual tenant API (GET, PUT, DELETE) with stats [created]
+- `app/[locale]/platform-admin/tenants/new/page.tsx` - Create tenant page [created]
+- `components/platform-admin/tenant-create-form.tsx` - Tenant creation form with name, slug, admin email, tier selection [created]
+- `components/platform-admin/index.ts` - Added TenantCreateForm export [updated]
+- `lib/platform/queries.ts` - Platform-level queries
+- `lib/platform/actions.ts` - Platform admin actions
+
+### Subdomain Provisioning
+- `lib/tenant/subdomain.ts` - Subdomain utilities (URL generation, validation, reserved slugs, DNS instructions) [created]
+- `app/api/platform-admin/tenants/check-slug/route.ts` - API endpoint for checking slug availability [created]
+- `components/platform-admin/tenant-create-form.tsx` - Updated with subdomain preview and real-time slug availability check [updated]
+- `app/[locale]/platform-admin/tenants/[id]/page.tsx` - Tenant detail page with subdomain URL, custom domain configuration [updated]
+- `app/[locale]/platform-admin/tenants/page.tsx` - Tenants list showing subdomain URLs [updated]
+- `lib/tenant/index.ts` - Added subdomain utility exports [updated]
+
+### Custom Domain Configuration
+- `components/platform-admin/custom-domain-form.tsx` - Custom domain form with DNS instructions, verification status, add/edit/remove modals [created]
+- `components/platform-admin/index.ts` - Added CustomDomainForm export [updated]
+
+### Platform Admin Route Protection
+- `middleware.ts` - Platform admin routes (/platform-admin) protection, role-based redirects [verified]
+- `app/[locale]/platform-admin/layout.tsx` - Layout-level protection with protectLayout(), ROLE_GROUPS.PLATFORM_LEVEL [verified]
+- `lib/auth/middleware.ts` - checkPlatformAdminApi for API routes, checkRolesApi utilities [verified]
+- `app/api/platform-admin/tenants/route.ts` - API protection with checkPlatformAdminApi [verified]
+- `app/api/platform-admin/tenants/[id]/route.ts` - API protection with checkPlatformAdminApi [verified]
+- `app/api/platform-admin/tenants/check-slug/route.ts` - API protection with checkPlatformAdminApi [verified]
+
+### Shared Utilities
+- `lib/utils/cn.ts` - Class name utility (clsx + tailwind-merge) [created]
+- `lib/utils/format.ts` - Locale-aware formatting utilities (dates, times, currency, durations, ranges) [updated]
+- `lib/utils/constants.ts` - App constants and type definitions [created]
+- `lib/utils/index.ts` - Utils module exports [created]
+- `lib/utils/validation.ts` - Shared Zod schemas [created]
+
+### Testing Configuration
+- `jest.config.js` - Jest configuration with Next.js integration [created]
+- `jest.setup.js` - Jest setup with testing-library [created]
+
+### Tests
+- `__tests__/lib/availability/calculator.test.ts` - Availability utility functions unit tests (date overlap, buffer time, duration, schemas) [created]
+- `__tests__/lib/pricing/calculator.test.ts` - Pricing utility functions unit tests (duration, rates, discounts, schemas) [created]
+- `__tests__/lib/booking/validation.test.ts` - Booking validation unit tests (status checks, date validation, refund calculation, Zod schemas) [created]
+- `__tests__/lib/booking/validation.test.ts` - Booking validation tests
+- `__tests__/components/booking/search-widget.test.tsx` - Search widget tests
+
+### Notes
+
+- Unit tests should typically be placed alongside the code files they are testing or in `__tests__` directory mirroring the source structure.
+- Use `npx jest [optional/path/to/test/file]` to run tests.
+- All database migrations should be numbered sequentially (e.g., `001_initial_schema.sql`).
+- Server Components are default; add `'use client'` directive only when needed.
+
+---
+
+## Tasks
+
+- [x] 1.0 Project Setup & Infrastructure
+  - [x] 1.1 Initialize Next.js 14+ project with App Router and TypeScript
+  - [x] 1.2 Configure Tailwind CSS with custom theme tokens (colors, fonts, spacing)
+  - [x] 1.3 Set up ESLint and Prettier with strict rules
+  - [x] 1.4 Create Supabase project and configure environment variables
+  - [x] 1.5 Set up Supabase client utilities (browser, server, admin)
+  - [x] 1.6 Configure Vercel project with environment variables
+  - [x] 1.7 Set up project folder structure (app, components, lib, etc.)
+  - [x] 1.8 Install and configure core dependencies (zod, react-hook-form, date-fns, etc.)
+  - [x] 1.9 Create shared UI component primitives (Button, Input, Select, Card, Modal, etc.)
+  - [x] 1.10 Set up error boundary and loading states
+
+- [x] 2.0 Database Schema & Multi-Tenant Foundation
+  - [x] 2.1 Design complete database schema (ERD) covering all MVP entities
+  - [x] 2.2 Create migration: tenants table (id, name, slug, domain, settings JSONB, subscription_tier, status, created_at)
+  - [x] 2.3 Create migration: users table with tenant_id, role, profile fields
+  - [x] 2.4 Create migration: branches table (tenant_id, name, address, coordinates, contact, hours JSONB)
+  - [x] 2.5 Create migration: vehicle_categories table (tenant_id, name, description, sort_order)
+  - [x] 2.6 Create migration: vehicles table (tenant_id, branch_id, category_id, all specs, status, photos JSONB)
+  - [x] 2.7 Create migration: pricing_rules table (tenant_id, category_id/vehicle_id, rate_type, amount)
+  - [x] 2.8 Create migration: seasons table (tenant_id, name, start_date, end_date, multiplier)
+  - [x] 2.9 Create migration: addons table (tenant_id, name, description, price, price_type)
+  - [x] 2.10 Create migration: coupons table (tenant_id, code, discount_type, amount, validity, limits)
+  - [x] 2.11 Create migration: bookings table (tenant_id, vehicle_id, customer_id, dates, status, pricing JSONB)
+  - [x] 2.12 Create migration: booking_addons table (booking_id, addon_id, quantity, price)
+  - [x] 2.13 Create migration: pages table (tenant_id, slug, title JSONB, meta JSONB, status)
+  - [x] 2.14 Create migration: page_blocks table (page_id, block_type, content JSONB, sort_order)
+  - [x] 2.15 Create migration: media table (tenant_id, filename, url, type, size)
+  - [x] 2.16 Implement RLS policies for tenants table (platform admin only)
+  - [x] 2.17 Implement RLS policies for all tenant-scoped tables (filter by tenant_id)
+  - [x] 2.18 Implement RLS policies for bookings (customers see own, staff see tenant's)
+  - [x] 2.19 Create database indexes for common queries (tenant_id, status, dates)
+  - [x] 2.20 Generate TypeScript types from Supabase schema
+  - [x] 2.21 Create seed data script for development/testing
+
+- [x] 3.0 Authentication & Authorization System
+  - [x] 3.1 Configure Supabase Auth settings (email provider, redirect URLs)
+  - [x] 3.2 Create auth context provider with user and session state
+  - [x] 3.3 Implement useAuth hook for client components
+  - [x] 3.4 Create login page with email/password form
+  - [x] 3.5 Create registration page with email/password form
+  - [x] 3.6 Create forgot password page and reset flow
+  - [x] 3.7 Implement email verification flow
+  - [x] 3.8 Define role constants and permission mappings
+  - [x] 3.9 Create role-checking utility functions (hasRole, canAccess)
+  - [x] 3.10 Implement middleware for protected routes (admin, account)
+  - [x] 3.11 Create auth callback route for OAuth/magic links
+  - [x] 3.12 Implement session refresh and token handling
+  - [x] 3.13 Add role assignment during registration (customer default)
+  - [x] 3.14 Create user profile update functionality
+  - [x] 3.15 Implement logout functionality with redirect
+
+- [x] 4.0 Multi-Language (i18n) Infrastructure
+  - [x] 4.1 Install and configure next-intl
+  - [x] 4.2 Set up i18n routing with [locale] parameter
+  - [x] 4.3 Create middleware for locale detection and routing
+  - [x] 4.4 Create English translation dictionary (en.json) with all UI strings
+  - [x] 4.5 Create Lithuanian translation dictionary (lt.json)
+  - [x] 4.6 Create Russian translation dictionary (ru.json)
+  - [x] 4.7 Implement language switcher component
+  - [x] 4.8 Add language switcher to header
+  - [x] 4.9 Create tenant language settings (enabled languages, default)
+  - [x] 4.10 Implement locale-aware date/time formatting
+  - [x] 4.11 Implement locale-aware currency formatting
+  - [x] 4.12 Create useTranslations hook wrapper for components
+  - [x] 4.13 Add hreflang link generation utility
+
+- [x] 5.0 CMS & Page Builder System
+  - [x] 5.1 Define block type interfaces (props, content schema per block)
+  - [x] 5.2 Create block registry mapping block types to components
+  - [x] 5.3 Implement Hero block component (heading, subtext, CTA, background image)
+  - [x] 5.4 Implement Features block component (icon grid, configurable columns)
+  - [x] 5.5 Implement Fleet Gallery block component (vehicle cards from DB)
+  - [x] 5.6 Implement Testimonials block component (carousel/grid)
+  - [x] 5.7 Implement FAQ block component (accordion)
+  - [x] 5.8 Implement CTA block component (heading, button, background)
+  - [x] 5.9 Implement Text/Image block component (side-by-side, configurable)
+  - [x] 5.10 Implement Contact Form block component (form with fields)
+  - [x] 5.11 Implement Location Map block component (Google Maps/Mapbox)
+  - [x] 5.12 Implement Pricing Table block component
+  - [x] 5.13 Create BlockRenderer component for dynamic rendering
+  - [x] 5.14 Create admin pages list view
+  - [x] 5.15 Create admin page editor with block management
+  - [x] 5.16 Implement block add/remove functionality in editor
+  - [x] 5.17 Implement block reordering (move up/down or drag-drop)
+  - [x] 5.18 Implement block content editing forms per block type
+  - [x] 5.19 Add localized content editing (tabs for LT/EN/RU)
+  - [x] 5.20 Create media library page with upload functionality
+  - [x] 5.21 Implement image upload to Supabase Storage
+  - [x] 5.22 Create media picker component for block editors
+  - [x] 5.23 Implement page SEO metadata editing (title, description, OG)
+  - [x] 5.24 Create page preview functionality
+  - [x] 5.25 Implement page publish/unpublish status
+
+- [x] 6.0 Public Website Template & Components
+  - [x] 6.1 Create base layout component with header and footer
+  - [x] 6.2 Implement responsive header with logo, navigation, language switcher, CTA
+  - [x] 6.3 Implement mobile menu (hamburger, slide-out)
+  - [x] 6.4 Implement footer with links, contact info, social icons
+  - [x] 6.5 Create booking search widget component (locations, dates, submit)
+  - [x] 6.6 Create vehicle card component (photo, name, specs, price, CTA)
+  - [x] 6.7 Create vehicle grid component with responsive columns
+  - [x] 6.8 Create vehicle filter component (category, transmission, fuel, price range)
+  - [x] 6.9 Implement homepage with booking widget and CMS blocks
+  - [x] 6.10 Implement fleet page with vehicle grid and filters
+  - [x] 6.11 Implement vehicle detail page (gallery, specs, pricing, availability, book CTA)
+  - [x] 6.12 Create image gallery component with thumbnails and lightbox
+  - [x] 6.13 Create availability calendar component for vehicle detail
+  - [x] 6.14 Implement about page (CMS-driven)
+  - [x] 6.15 Implement contact page with form and map
+  - [x] 6.16 Implement dynamic CMS page rendering ([slug])
+  - [x] 6.17 Create terms and privacy policy pages
+  - [x] 6.18 Apply tenant branding (colors, fonts, logo) via CSS variables
+  - [x] 6.19 Implement tenant branding context and theme provider
+  - [x] 6.20 Test and optimize mobile responsiveness across all pages
+
+- [x] 7.0 SEO Implementation
+  - [x] 7.1 Create metadata generation utility for pages
+  - [x] 7.2 Implement generateMetadata for all public pages
+  - [x] 7.3 Add OpenGraph meta tags to all pages
+  - [x] 7.4 Add Twitter Card meta tags to all pages
+  - [x] 7.5 Create Schema.org Organization JSON-LD
+  - [x] 7.6 Create Schema.org LocalBusiness JSON-LD for branches
+  - [x] 7.7 Create Schema.org Vehicle/Product JSON-LD for vehicles
+  - [x] 7.8 Create Schema.org FAQPage JSON-LD for FAQ blocks
+  - [x] 7.9 Implement dynamic XML sitemap generation (/sitemap.xml)
+  - [x] 7.10 Generate sitemap entries for all public pages per locale
+  - [x] 7.11 Implement dynamic robots.txt generation
+  - [x] 7.12 Add canonical URL tags to all pages
+  - [x] 7.13 Implement hreflang tags for language variants
+  - [x] 7.14 Configure next/image for optimized image delivery
+  - [x] 7.15 Implement lazy loading for below-fold images
+  - [x] 7.16 Optimize fonts loading (next/font)
+  - [x] 7.17 Audit and optimize Core Web Vitals (LCP, FID, CLS)
+  - [x] 7.18 Set up Vercel Analytics or similar for performance monitoring
+
+- [x] 8.0 Branch & Location Management
+  - [x] 8.1 Create branch TypeScript types and Zod schemas
+  - [x] 8.2 Create branch database query functions (list, get, create, update, delete)
+  - [x] 8.3 Create admin branches list page with data table
+  - [x] 8.4 Create admin branch create/edit form
+  - [x] 8.5 Implement branch fields: name, address, city, GPS coordinates
+  - [x] 8.6 Implement branch contact info fields (phone, email)
+  - [x] 8.7 Implement operating hours configuration (per day of week)
+  - [x] 8.8 Add branch status (active/inactive)
+  - [x] 8.9 Create branch selector component for booking widget
+  - [x] 8.10 Display branches on public website (locations page or map)
+  - [x] 8.11 Integrate map component for branch locations
+
+- [x] 9.0 Fleet Management System
+  - [x] 9.1 Create vehicle and category TypeScript types and Zod schemas
+  - [x] 9.2 Create vehicle database query functions (list, get, create, update, delete)
+  - [x] 9.3 Create category database query functions
+  - [x] 9.4 Create admin fleet list page with data table and filters
+  - [x] 9.5 Create admin vehicle create/edit form
+  - [x] 9.6 Implement vehicle basic fields (make, model, year, license plate, VIN)
+  - [x] 9.7 Implement vehicle specification fields (transmission, fuel, seats, doors, luggage)
+  - [x] 9.8 Implement vehicle category assignment
+  - [x] 9.9 Implement vehicle branch assignment
+  - [x] 9.10 Implement vehicle status management (Available, Rented, Maintenance, Retired)
+  - [x] 9.11 Create vehicle photo upload functionality (multiple photos)
+  - [x] 9.12 Implement vehicle photo gallery management (reorder, delete, set primary)
+  - [x] 9.13 Create admin categories management page
+  - [x] 9.14 Create category create/edit form (name, description, icon, sort order)
+  - [x] 9.15 Display vehicle count per category in admin
+  - [x] 9.16 Create vehicle detail view in admin with all info
+
+- [x] 10.0 Availability & Pricing Engine
+  - [x] 10.1 Create availability types and interfaces
+  - [x] 10.2 Implement availability query function (vehicle, date range)
+  - [x] 10.3 Implement buffer time logic (global and per-category settings)
+  - [x] 10.4 Handle one-way rental availability (affects both branches)
+  - [x] 10.5 Create manual availability blocks functionality
+  - [x] 10.6 Create admin availability calendar view
+  - [x] 10.7 Create pricing rule types and interfaces
+  - [x] 10.8 Implement base rate configuration (daily/hourly per category/vehicle)
+  - [x] 10.9 Create admin pricing rules page
+  - [x] 10.10 Implement seasonal pricing rules (date ranges, multipliers)
+  - [x] 10.11 Create admin seasons management page
+  - [x] 10.12 Implement duration-based pricing (weekly, monthly rates)
+  - [x] 10.13 Implement one-way fee configuration
+  - [x] 10.14 Create add-on types and pricing (per-day, per-rental)
+  - [x] 10.15 Create admin add-ons management page
+  - [x] 10.16 Implement pricing calculation engine (combine all rules)
+  - [x] 10.17 Create coupon types and validation logic
+  - [x] 10.18 Create admin coupons management page
+  - [x] 10.19 Implement coupon application in pricing calculation
+  - [x] 10.20 Write unit tests for availability calculator
+  - [x] 10.21 Write unit tests for pricing calculator
+
+- [x] 11.0 Booking Engine & Stripe Payments
+  - [x] 11.1 Create booking types, statuses, and Zod schemas
+  - [x] 11.2 Create booking database query functions
+  - [x] 11.3 Create booking reference number generator (human-readable)
+  - [x] 11.4 Implement search results page (available vehicles with prices)
+  - [x] 11.5 Create vehicle selection and booking initiation
+  - [x] 11.6 Create multi-step booking form component
+  - [x] 11.7 Implement Step 1: Vehicle confirmation and dates
+  - [x] 11.8 Implement Step 2: Add-ons selection
+  - [x] 11.9 Implement Step 3: Customer details and driver info
+  - [x] 11.10 Implement Step 4: Review and coupon code
+  - [x] 11.11 Create price breakdown component (itemized display)
+  - [x] 11.12 Set up Stripe client and server utilities
+  - [x] 11.13 Create Stripe Checkout session API route
+  - [x] 11.14 Implement Checkout redirect with booking data
+  - [x] 11.15 Create Stripe webhook handler route
+  - [x] 11.16 Handle checkout.session.completed webhook
+  - [x] 11.17 Create booking record on successful payment
+  - [x] 11.18 Create booking confirmation page
+  - [x] 11.19 Implement staff booking creation (walk-ins/phone)
+  - [x] 11.20 Create admin booking list page with filters
+  - [x] 11.21 Create admin booking detail page
+  - [x] 11.22 Implement booking status updates by staff
+  - [x] 11.23 Create cancellation policy configuration (admin settings)
+  - [x] 11.24 Implement booking cancellation logic with refund calculation
+  - [x] 11.25 Implement Stripe refund processing
+  - [x] 11.26 Implement booking modification (dates, add-ons)
+  - [x] 11.27 Handle modification pricing recalculation
+  - [x] 11.28 Write unit tests for booking validation
+
+- [x] 12.0 Customer Account Portal
+  - [x] 12.1 Create account layout integrated with public website
+  - [x] 12.2 Create account overview page (summary dashboard)
+  - [x] 12.3 Create bookings list page (upcoming and past)
+  - [x] 12.4 Create booking card component for list display
+  - [x] 12.5 Create booking detail page (full info, documents)
+  - [x] 12.6 Implement booking modification from customer account
+  - [x] 12.7 Implement booking cancellation from customer account
+  - [x] 12.8 Show cancellation policy and refund amount before canceling
+  - [x] 12.9 Create profile page with editable fields
+  - [x] 12.10 Implement profile update functionality
+  - [x] 12.11 Add password change functionality
+  - [x] 12.12 Protect account routes with auth middleware
+
+- [x] 13.0 Admin Dashboard
+  - [x] 13.1 Create admin layout with sidebar navigation
+  - [x] 13.2 Implement collapsible sidebar with icons and labels
+  - [x] 13.3 Create dashboard home page with overview widgets
+  - [x] 13.4 Create stats card component (bookings today, active rentals, etc.)
+  - [x] 13.5 Create today's pickups and returns widget
+  - [x] 13.6 Create recent bookings widget
+  - [x] 13.7 Create fleet status summary widget
+  - [x] 13.8 Create reusable data table component (sort, filter, paginate)
+  - [x] 13.9 Integrate data table into bookings, fleet, customers pages
+  - [x] 13.10 Create booking calendar view (monthly/weekly)
+  - [x] 13.11 Create settings overview page
+  - [x] 13.12 Create branding settings page (logo upload, colors, fonts)
+  - [x] 13.13 Implement branding settings save and preview
+  - [x] 13.14 Create languages settings page (enable/disable, default)
+  - [x] 13.15 Create cancellation policies settings page
+  - [x] 13.16 Create users management page (list staff)
+  - [x] 13.17 Create user invite/create form with role assignment
+  - [x] 13.18 Implement user edit and deactivate functionality
+  - [x] 13.19 Create customers list page with search
+  - [x] 13.20 Create customer detail page with booking history
+  - [x] 13.21 Protect all admin routes with role-based middleware
+
+- [x] 14.0 Email Notification System
+  - [x] 14.1 Choose and set up email provider (Resend recommended)
+  - [x] 14.2 Create email client utility with provider abstraction
+  - [x] 14.3 Create base email template layout (header, footer, branding)
+  - [x] 14.4 Create booking confirmation email template
+  - [x] 14.5 Create booking modification email template
+  - [x] 14.6 Create booking cancellation email template
+  - [x] 14.7 Create upcoming rental reminder email template
+  - [x] 14.8 Create welcome email template for new registrations
+  - [x] 14.9 Implement email sending function with template selection
+  - [x] 14.10 Add localization support to email templates
+  - [x] 14.11 Integrate email sending into booking creation flow
+  - [x] 14.12 Integrate email sending into booking modification flow
+  - [x] 14.13 Integrate email sending into booking cancellation flow
+  - [x] 14.14 Integrate email sending into user registration flow
+  - [x] 14.15 Create reminder email scheduling (cron or Supabase functions)
+  - [x] 14.16 Add email configuration to tenant settings (from name, reply-to)
+
+- [x] 15.0 Platform Administration (Super Admin)
+  - [x] 15.1 Create platform admin layout (separate from tenant admin)
+  - [x] 15.2 Create platform admin authentication (platform_admin role check)
+  - [x] 15.3 Create platform dashboard with tenant overview
+  - [x] 15.4 Create tenants list page with search and filters
+  - [x] 15.5 Create tenant detail page with all settings
+  - [x] 15.6 Create tenant creation form (name, slug, admin email)
+  - [x] 15.7 Implement tenant creation with initial admin user
+  - [x] 15.8 Implement subscription tier assignment
+  - [x] 15.9 Implement tenant status management (active, suspended)
+  - [x] 15.10 Create tenant suspension/reactivation functionality
+  - [x] 15.11 Implement subdomain provisioning for new tenants
+  - [x] 15.12 Create custom domain configuration interface
+  - [x] 15.13 Protect all platform admin routes
+
+---
+
+**Status:** Complete task list generated with sub-tasks and relevant files.
