@@ -30,12 +30,14 @@ export async function generateMetadata({
 
   const supabase = await createServerClient();
 
-  const { data: page } = await supabase
+  const { data } = await supabase
     .from('pages')
     .select('title, meta, status')
     .eq('slug', slug)
     .eq('status', 'published')
     .single();
+
+  const page = data as { title: Record<string, string> | null; meta: Record<string, { description?: string; keywords?: string[]; ogImage?: string }> | null; status: string } | null;
 
   if (!page) {
     return {
@@ -44,10 +46,8 @@ export async function generateMetadata({
   }
 
   // Get localized title and meta
-  const pageTitle = page.title as Record<string, string> | null;
-  const pageMeta = page.meta as Record<string, { description?: string; keywords?: string[]; ogImage?: string }> | null;
-  const title = pageTitle?.[locale as Locale] || pageTitle?.en || slug;
-  const meta = pageMeta?.[locale as Locale] || pageMeta?.en || {};
+  const title = page.title?.[locale as Locale] || page.title?.en || slug;
+  const meta = page.meta?.[locale as Locale] || page.meta?.en || {};
 
   return generateCmsPageMetadata({
     page: {
